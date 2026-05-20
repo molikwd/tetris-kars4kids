@@ -1,0 +1,8 @@
+.buildozer/
+bin/
+build/
+dist/
+Tetris.spec
+__pycache__/
+*.pyc
+installers/
