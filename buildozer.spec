@@ -10,7 +10,7 @@ version = 1.0
 
 requirements = python3,pygame
 
-orientation = portrait
+orientation = sensorPortrait
 fullscreen = 1
 
 android.permissions = VIBRATE

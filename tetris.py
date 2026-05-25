@@ -424,6 +424,8 @@ def main():
         screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         SW = screen.get_width()
         SH = screen.get_height()
+        if SW > SH:          # device handed us landscape; force portrait math
+            SW, SH = SH, SW
         _scale = min(SW / VIRT_W, SH / VIRT_H)
         SCALED_W = int(VIRT_W * _scale)
         SCALED_H = int(VIRT_H * _scale)
@@ -473,7 +475,6 @@ def main():
     # touch hold state (left/right/down repeat)
     touch_held_idx   = -1
     touch_hold_timer = 0
-    last_tap_ms      = 0   # debounce FINGERDOWN vs MOUSEBUTTONDOWN
 
     def do_android_tap(vpos):
         nonlocal touch_held_idx, touch_hold_timer
@@ -516,10 +517,8 @@ def main():
                 if event.key == pygame.K_LEFT:  key_left  = False
                 if event.key == pygame.K_RIGHT: key_right = False
 
-            # Android touch via FINGERDOWN (primary)
+            # Android touch via FINGERDOWN
             if ANDROID and event.type == pygame.FINGERDOWN:
-                now = pygame.time.get_ticks()
-                last_tap_ms = now
                 vpos = screen_to_virt((int(event.x * SW), int(event.y * SH)))
                 result = do_android_tap(vpos)
                 if result == 'restart':
@@ -528,22 +527,11 @@ def main():
             if ANDROID and event.type == pygame.FINGERUP:
                 touch_held_idx = -1; touch_hold_timer = 0
 
-            # MOUSEBUTTONDOWN — PC always, Android as fallback (debounced)
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            # MOUSEBUTTONDOWN — PC only
+            if not ANDROID and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 vpos = screen_to_virt(event.pos)
-                if ANDROID:
-                    now = pygame.time.get_ticks()
-                    if now - last_tap_ms > 100:   # only if FINGERDOWN didn't just fire
-                        last_tap_ms = now
-                        result = do_android_tap(vpos)
-                        if result == 'restart':
-                            game = Game(); key_left = key_right = False
-                else:
-                    if not game.over and pause_btn.collidepoint(vpos):
-                        game.paused = not game.paused
-
-            if ANDROID and event.type == pygame.MOUSEBUTTONUP:
-                touch_held_idx = -1; touch_hold_timer = 0
+                if not game.over and pause_btn.collidepoint(vpos):
+                    game.paused = not game.paused
 
         # Keyboard DAS
         if not game.over and not game.paused:
