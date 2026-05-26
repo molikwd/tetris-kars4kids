@@ -480,8 +480,10 @@ def main():
         nonlocal touch_held_idx, touch_hold_timer
         if game.over:
             return 'restart'
+        if pause_btn.collidepoint(vpos):
+            game.paused = not game.paused
+            return
         if game.paused:
-            game.paused = False
             return
         handle_touch(vpos, game)
         touch_held_idx   = get_touch_action(vpos)
@@ -590,7 +592,7 @@ def main():
         virt.blit(small.render("BEST SCORE", True, (160, 160, 160)), (10, 14))
         virt.blit(font.render(str(high_score), True, (230, 80, 160)), (10, 30))
 
-        if not ANDROID and not game.over:
+        if not game.over:
             btn_color = (200, 60, 130) if game.paused else (230, 80, 160)
             pygame.draw.rect(virt, btn_color, pause_btn, border_radius=6)
             pygame.draw.rect(virt, (200, 200, 200), pause_btn, 2, border_radius=6)
